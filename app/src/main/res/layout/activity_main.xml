@@ -237,7 +237,7 @@
         android:layout_height="wrap_content"
         android:text="Subscribe and send data"
         android:id="@+id/send_data"
-        android:onClick="sendData"
+        android:onClick="buttonClick"
         />
 
     <CheckBox

@@ -7,9 +7,11 @@ public class Constants
 {
     public static final String ip_address = "192.168.1.1";
     public static final String port = "3333";
-    public static final int interval = 5;
+    public static final int interval = 2;
     public static final String accelerometer = "accelerometer";
     public static final String gyroscope = "gyroscope";
     public static final String magnetometer = "magnetometer";
     public static final String gps = "gps";
+    public static final String sendLabel = "Subscribe and send data";
+    public static final String stopLabel = "Unsubscribe and stop sending";
 }
