@@ -13,7 +13,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Target IP Address" />
+        android:text="Target IP Address"
+        />
 
     <EditText
         android:layout_width="match_parent"
@@ -32,6 +33,19 @@
         android:hint="IP Port"
         android:id="@+id/edit_port"
         />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Interval" />
+
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/seekbar"
+        android:max="10"
+        android:progress="2"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -1,24 +1,56 @@
 package nos.elfak.rs.senseclient;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements  SensorEventListener
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener
 {
     private CheckBox acc, gyr, mag, gps;
+    private EditText address, port;
+    private SeekBar seekBar;
     private boolean sendAcc, sendGyr, sendMag, sendGps, sendingData;
     private SensorData sensorAcc, sensorGyr, sensorMag, sensorGps;
     private Thread thread;
     private SensorManager sensorManager;
     private Button button;
+    LocationManager locationManager;
+    LocationListener listener;
+    int MY_PERMISSION = 99;
+    int intervalCount = 0;
+    Communication communication;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -31,6 +63,13 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
         gps = (CheckBox) findViewById(R.id.check_gps);
         button = (Button) findViewById(R.id.send_data);
 
+        seekBar = (SeekBar) findViewById(R.id.seekbar);
+        address = (EditText) findViewById(R.id.edit_address);
+        address.setText(Constants.ip_address);
+
+        port = (EditText) findViewById(R.id.edit_port);
+        port.setText(Constants.port);
+
         sendingData = sendAcc = sendGps = sendGyr = sendMag = false;
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -39,6 +78,69 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
         sensorGyr = new SensorData(Constants.gyroscope);
         sensorMag = new SensorData(Constants.magnetometer);
         sensorGps = new SensorData(Constants.gps);
+
+        if(communication == null)
+        {
+            communication = new Communication();
+            if(communication.socket == null)
+                Toast.makeText(this,"Error in communication, check Address and port", Toast.LENGTH_SHORT);
+        }
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
+    {
+        if(requestCode == MY_PERMISSION)
+        {
+            boolean b = true;
+            for(int i = 0; i < grantResults.length; i++)
+            {
+                if(grantResults[i] != PackageManager.PERMISSION_GRANTED)
+                {
+                    b = false;
+                    break;
+                }
+            }
+
+            if(b)
+                PickUpLocation(false);
+        }
+    }
+
+    private void PickUpLocation(boolean unregister)
+    {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    MY_PERMISSION);
+            return;
+        }else
+        {
+            if(unregister)
+            {
+                if(locationManager != null)
+                {
+                    locationManager.removeUpdates(listener);
+                    locationManager = null;
+                    listener = null;
+                }
+            }else
+            {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, (int) (1000 * Constants.interval), 0, listener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, (int) (1000 * Constants.interval), 0, listener);
+            }
+        }
     }
 
     private void recreateActivity()
@@ -56,12 +158,52 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
         gps.setVisibility(View.VISIBLE);
 
         sensorManager.unregisterListener(this);
+        PickUpLocation(true);
         sendAcc = sendGps = sendGyr = sendMag = false;
+
+        address.setEnabled(true);
+        port.setEnabled(true);
+        seekBar.setEnabled(true);
+    }
+
+    private void registerGpsListener()
+    {
+        if(!client.isConnected())
+            client.connect();
+        if (locationManager == null)
+        {
+            locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            listener = new LocationListener()
+            {
+                @Override
+                public void onLocationChanged(Location location)
+                {
+                    sensorGps.setAll(location.getLatitude(), location.getLongitude(), 0.0);
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras)
+                {
+                }
+
+                @Override
+                public void onProviderEnabled(String provider)
+                {
+                }
+
+                @Override
+                public void onProviderDisabled(String provider)
+                {
+                }
+            };
+            PickUpLocation(false);
+        }
     }
 
     private void subscribe()
     {
-        if(acc.isChecked())
+        Constants.interval = ((double) seekBar.getProgress() + 1) / 2.0;
+        if (acc.isChecked())
         {
             findViewById(R.id.acc_info).setVisibility(View.VISIBLE);
             sendAcc = true;
@@ -69,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
         }
         acc.setVisibility(View.GONE);
 
-        if(gyr.isChecked())
+        if (gyr.isChecked())
         {
             findViewById(R.id.gyr_info).setVisibility(View.VISIBLE);
             sendGyr = true;
@@ -77,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
         }
         gyr.setVisibility(View.GONE);
 
-        if(mag.isChecked())
+        if (mag.isChecked())
         {
             findViewById(R.id.mag_info).setVisibility(View.VISIBLE);
             sendMag = true;
@@ -85,29 +227,37 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
         }
         mag.setVisibility(View.GONE);
 
-        if(gps.isChecked())
+        if (gps.isChecked())
         {
             findViewById(R.id.gps_info).setVisibility(View.VISIBLE);
             sendGps = true;
+            registerGpsListener();
         }
         gps.setVisibility(View.GONE);
+
+        Constants.ip_address = address.getText().toString();
+        Constants.port = port.getText().toString();
+
+        address.setEnabled(false);
+        port.setEnabled(false);
+
+        seekBar.setEnabled(false);
     }
 
     public void buttonClick(View v)
     {
-        if(sendingData)
+        if (sendingData)
         {
             button.setText(Constants.sendLabel);
             thread.interrupt();
             recreateActivity();
-        }
-        else
+        } else
         {
             button.setText(Constants.stopLabel);
             subscribe();
             if (thread != null)
             {
-                if(thread.isAlive())
+                if (thread.isAlive())
                 {
                     thread.interrupt();
                 }
@@ -118,8 +268,9 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
                 @Override
                 public void run()
                 {
-                    while(sendingData)
+                    while (sendingData)
                     {
+                        intervalCount++;
                         runOnUiThread(new Runnable()
                         {
                             @Override
@@ -128,11 +279,14 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
                                 refreshData();
                             }
                         });
-
-                        sendData();
+                        if(intervalCount == 2)
+                        {
+                            sendData();
+                            intervalCount = 0;
+                        }
                         try
                         {
-                            Thread.sleep(Constants.interval * 1000);
+                            Thread.sleep((int)(Constants.interval * 1000));
                         } catch (InterruptedException e)
                         {
                             e.printStackTrace();
@@ -176,11 +330,32 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
 
         textView = (TextView) findViewById(R.id.mag_z);
         textView.setText(String.format("%.2f", sensorMag.getZ()));
+
+
+        textView = (TextView) findViewById(R.id.gps_x);
+        textView.setText(String.format("%.2f", sensorGps.getX()));
+
+        textView = (TextView) findViewById(R.id.gps_y);
+        textView.setText(String.format("%.2f", sensorGps.getY()));
+
+        textView = (TextView) findViewById(R.id.gps_z);
+        textView.setText(String.format("%.2f", sensorGps.getZ()));
     }
 
     private void sendData()
     {
+        ArrayList<SensorData> datas = new ArrayList<>();
+        //sendAcc, sendGyr, sendMag, sendGps,
+        if(sendAcc)
+            datas.add(sensorAcc);
+        if(sendGyr)
+            datas.add(sensorGyr);
+        if(sendMag)
+            datas.add(sensorMag);
+        if(sendGps)
+            datas.add(sensorGps);
 
+        communication.sendData(datas);
     }
 
     @Override
@@ -209,5 +384,26 @@ public class MainActivity extends AppCompatActivity implements  SensorEventListe
     public void onAccuracyChanged(Sensor sensor, int accuracy)
     {
 
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://nos.elfak.rs.senseclient/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
     }
 }
