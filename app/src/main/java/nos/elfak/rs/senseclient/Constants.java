@@ -5,8 +5,8 @@ package nos.elfak.rs.senseclient;
  */
 public class Constants
 {
-    public static String ip_address = "192.168.1.1";
-    public static String port = "3333";
+    public static String ip_address = "192.168.1.9";
+    public static String port = "33333";
     public static double interval = 1;
     public static final String accelerometer = "accelerometer";
     public static final String gyroscope = "gyroscope";

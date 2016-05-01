@@ -12,6 +12,7 @@ public class SensorData
     private double y;
     private double z;
     private String sensor;
+    private int id;
 
     public SensorData(){}
 
@@ -73,6 +74,16 @@ public class SensorData
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId(int id)
+    {
+        this.id = id;
     }
 
     @Override

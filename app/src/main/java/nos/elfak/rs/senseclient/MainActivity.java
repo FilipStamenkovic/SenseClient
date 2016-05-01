@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CheckBox acc, gyr, mag, gps;
     private EditText address, port;
     private SeekBar seekBar;
-    private boolean sendAcc, sendGyr, sendMag, sendGps, sendingData;
+    private boolean sendAcc, sendGyr, sendMag, sendGps, sendingData, subscribed;
     private SensorData sensorAcc, sensorGyr, sensorMag, sensorGps;
     private Thread thread;
     private SensorManager sensorManager;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         port = (EditText) findViewById(R.id.edit_port);
         port.setText(Constants.port);
 
-        sendingData = sendAcc = sendGps = sendGyr = sendMag = false;
+        subscribed = sendingData = sendAcc = sendGps = sendGyr = sendMag = false;
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -81,9 +81,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if(communication == null)
         {
-            communication = new Communication();
-            if(communication.socket == null)
-                Toast.makeText(this,"Error in communication, check Address and port", Toast.LENGTH_SHORT);
+            communication = new Communication(this);
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -164,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         address.setEnabled(true);
         port.setEnabled(true);
         seekBar.setEnabled(true);
+      //  communication.closeSocket();
     }
 
     private void registerGpsListener()
@@ -242,6 +241,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         port.setEnabled(false);
 
         seekBar.setEnabled(false);
+
+        final ArrayList<SensorData> dataToSend = generateSensorList();
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                communication.subscribe(dataToSend);
+            }
+        }).start();
+    }
+
+    public void subscribed(int id)
+    {
+        sensorGps.setId(id);
+        sensorAcc.setId(id);
+        sensorGyr.setId(id);
+        sensorMag.setId(id);
+
+        subscribed = true;
     }
 
     public void buttonClick(View v)
@@ -281,7 +300,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         });
                         if(intervalCount == 2)
                         {
-                            sendData();
+                            if(subscribed)
+                                sendData();
                             intervalCount = 0;
                         }
                         try
@@ -342,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         textView.setText(String.format("%.2f", sensorGps.getZ()));
     }
 
-    private void sendData()
+    private ArrayList<SensorData> generateSensorList()
     {
         ArrayList<SensorData> datas = new ArrayList<>();
         //sendAcc, sendGyr, sendMag, sendGps,
@@ -355,7 +375,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if(sendGps)
             datas.add(sensorGps);
 
-        communication.sendData(datas);
+        return datas;
+    }
+
+    private void sendData()
+    {
+
+
+        communication.sendData(generateSensorList());
     }
 
     @Override
