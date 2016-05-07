@@ -18,10 +18,11 @@ public class Communication
     private DatagramSocket socket;
     private MainActivity activity;
    // private int receivePort;
-    private Thread sendingThread;
-    DatagramPacket receivePacket;
+    private Thread receivingThread;
+   // DatagramPacket receivePacket;
     private static Communication communication;
     private boolean receiving = false;
+    private boolean poslaoSubscribe = false;
     private Communication(MainActivity activity)
     {
         this.activity = activity;
@@ -35,27 +36,18 @@ public class Communication
         return communication;
     }
 
-    public void subscribe(ArrayList<SensorData> datas)
+    public void receiving()
     {
-        String info = "subscribe\n";
-        for(int i = 0; i < datas.size(); i++)
-            info += datas.get(i).getSensor() + "\n";
-
-        byte[] sendData;
         byte[] receiveData = new byte[1024];
-        sendData = info.getBytes();
-
-        DatagramPacket packet = new DatagramPacket(sendData,sendData.length);
-        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
         try
         {
+            receivingThread = Thread.currentThread();
+            String info;
             if(socket == null)
             {
                 socket = new DatagramSocket();
             }
-            packet.setAddress(InetAddress.getByName(Constants.ip_address));
-            packet.setPort(Integer.parseInt(Constants.port));
-            socket.send(packet);
             socket.receive(receivePacket);
             String id = new String(receivePacket.getData());
             activity.subscribed(Long.parseLong(id.trim()));
@@ -66,7 +58,7 @@ public class Communication
                 info = (new String(receivePacket.getData())).trim();
                 if (info.contains("ping"))
                 {
-                    sendData(communication.activity.generateSensorList());
+                    sendData(communication.activity.generateSensorList(), false);
                     activity.PrikaziPing(0, 0);
                 }
             }
@@ -82,35 +74,6 @@ public class Communication
         }
     }
 
-    private void receivePing()
-    {
-        try
-        {
-            byte [] data = new byte[1024];
-            receiving = true;
-
-            while (receiving) //ovde dodaj neki boolean za svaki slucaj
-            {
-               // DatagramPacket packet = new DatagramPacket(data, data.length);
-              //  activity.PrikaziPing(receivingSocket.getPort(), 2);
-             //   activity.PrikaziPing(receivingSocket.getLocalPort(), 3);
-                socket.receive(receivePacket);
-                String info = (new String(receivePacket.getData())).trim();
-                if (info.contains("ping"))
-                {
-                    sendData(communication.activity.generateSensorList());
-                    activity.PrikaziPing(0,0);
-                }
-            }
-        } catch (SocketException e)
-        {
-            e.printStackTrace();
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
     public void closeSocket()
     {
         if(socket != null)
@@ -120,10 +83,11 @@ public class Communication
             socket = null;
         }
         receiving = false;
-        if(sendingThread != null && sendingThread.isAlive())
+        poslaoSubscribe = false;
+        if(receivingThread != null && receivingThread.isAlive())
         {
-            sendingThread.interrupt();
-            sendingThread = null;
+            receivingThread.interrupt();
+            receivingThread = null;
         }
 
       /*  if(receivingSocket != null)
@@ -136,24 +100,44 @@ public class Communication
     }
 
 
-    public void sendData(ArrayList<SensorData> datas)
+    public void sendData(ArrayList<SensorData> datas, boolean subscribing)
     {
         try
         {
             String info;
-            for(int i = 0; i < datas.size(); i++)
+            DatagramPacket packet;
+            byte [] sendData;
+            if (socket == null)
+                socket = new DatagramSocket();
+            if(!subscribing)
             {
-                info = datas.get(i).toString() + "\n";
+                for (int i = 0; i < datas.size(); i++)
+                {
+                    info = datas.get(i).toString() + "\n";
+                    sendData = info.getBytes();
 
-                byte[] sendData;
+                    packet = new DatagramPacket(sendData, sendData.length);
+
+                    packet.setAddress(InetAddress.getByName(Constants.ip_address));
+                    packet.setPort(Integer.parseInt(Constants.port));
+                    socket.send(packet);
+                }
+            }else
+            {
+                if(poslaoSubscribe)
+                    return;
+                info = "subscribe\n";
+                for(int i = 0; i < datas.size(); i++)
+                    info += datas.get(i).getSensor() + "\n";
+
+
                 sendData = info.getBytes();
 
-                DatagramPacket packet = new DatagramPacket(sendData, sendData.length);
-                if (socket == null)
-                    socket = new DatagramSocket();
+                packet = new DatagramPacket(sendData,sendData.length);
                 packet.setAddress(InetAddress.getByName(Constants.ip_address));
                 packet.setPort(Integer.parseInt(Constants.port));
                 socket.send(packet);
+                poslaoSubscribe = true;
             }
            // closeSocket();
         } catch (IOException e)

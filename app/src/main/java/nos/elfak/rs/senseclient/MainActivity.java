@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
       //  subscribed = sendingData = sendAcc = sendGps = sendGyr = sendMag = false;
-
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         sensorAcc = new SensorData(Constants.accelerometer);
@@ -179,7 +178,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         address.setEnabled(true);
         port.setEnabled(true);
         seekBar.setEnabled(true);
-      //  communication.closeSocket();
+        subscribed = false;
+        communication.closeSocket();
     }
 
     private void registerGpsListener()
@@ -270,26 +270,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         port.setEnabled(false);
 
        // seekBar.setEnabled(false);
-
-        final ArrayList<SensorData> dataToSend = generateSensorList();
         new Thread(new Runnable()
         {
             @Override
             public void run()
             {
-                communication.subscribe(dataToSend);
+                communication.receiving();
             }
         }).start();
     }
 
     public void subscribed(long id)
     {
+        subscribed = true;
         sensorGps.setId(id);
         sensorAcc.setId(id);
         sensorGyr.setId(id);
         sensorMag.setId(id);
-
-        subscribed = true;
     }
 
     public void buttonClick(View v)
@@ -329,8 +326,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         });
                         if(intervalCount == 2)
                         {
-                            if(subscribed)
-                                sendData();
+                            communication.sendData(generateSensorList(), !subscribed);
+
                             intervalCount = 0;
                         }
                         try
@@ -436,13 +433,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             datas.add(sensorGps);
 
         return datas;
-    }
-
-    private void sendData()
-    {
-
-
-        communication.sendData(generateSensorList());
     }
 
     @Override

@@ -5,7 +5,7 @@ package nos.elfak.rs.senseclient;
  */
 public class Constants
 {
-    public static String ip_address = "192.168.0.15";
+    public static String ip_address = "192.168.1.52";
     public static String port = "3333";
     public static final int receivingPort = 44444;
     public static double interval = 1;
