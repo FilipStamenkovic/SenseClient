@@ -12,7 +12,7 @@ public class SensorData
     private double y;
     private double z;
     private String sensor;
-    private int id;
+    private long id;
 
     public SensorData(){}
 
@@ -76,12 +76,12 @@ public class SensorData
         this.z = z;
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId(int id)
+    public void setId(long id)
     {
         this.id = id;
     }

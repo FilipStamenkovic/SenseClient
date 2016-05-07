@@ -17,15 +17,28 @@ public class Communication
 {
     private DatagramSocket socket;
     private MainActivity activity;
-
-    public Communication(MainActivity activity)
+   // private int receivePort;
+    private Thread sendingThread;
+    private DatagramSocket receivingSocket;
+    DatagramPacket receivePacket;
+    private static Communication communication;
+    private boolean receiving = false;
+    private Communication(MainActivity activity)
     {
         this.activity = activity;
     }
 
+    public static Communication getCommunication(MainActivity activity)
+    {
+        if(communication == null)
+            communication = new Communication(activity);
+
+        return communication;
+    }
+
     public void subscribe(ArrayList<SensorData> datas)
     {
-        String info = "";
+        String info = "subscribe\n";
         for(int i = 0; i < datas.size(); i++)
             info += datas.get(i).getSensor() + "\n";
 
@@ -34,17 +47,31 @@ public class Communication
         sendData = info.getBytes();
 
         DatagramPacket packet = new DatagramPacket(sendData,sendData.length);
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        receivePacket = new DatagramPacket(receiveData, receiveData.length);
         try
         {
-            socket = new DatagramSocket();
+            if(socket == null)
+            {
+                socket = new DatagramSocket();
+            }
             packet.setAddress(InetAddress.getByName(Constants.ip_address));
             packet.setPort(Integer.parseInt(Constants.port));
             socket.send(packet);
             socket.receive(receivePacket);
             String id = new String(receivePacket.getData());
-            activity.subscribed(Integer.parseInt(id.trim()));
-            closeSocket();
+            activity.subscribed(Long.parseLong(id.trim()));
+            receiving = true;
+            while (receiving) //ovde dodaj neki boolean za svaki slucaj
+            {
+                socket.receive(receivePacket);
+                info = (new String(receivePacket.getData())).trim();
+                if (info.contains("ping"))
+                {
+                    sendData(communication.activity.generateSensorList());
+                    activity.PrikaziPing(0, 0);
+                }
+            }
+          //  closeSocket();
         } catch (IOException e)
         {
             e.printStackTrace();
@@ -56,20 +83,33 @@ public class Communication
         }
     }
 
-    private int parseIdFromSocket(String idStr)
+    private void receivePing()
     {
-        int index = 0;
-        while(Character.isDigit(idStr.charAt(index)))
-            index++;
+        try
+        {
+            byte [] data = new byte[1024];
+            receiving = true;
 
-        if(index == 0)
-            throw new NumberFormatException("not a number");
-        else
-            index--;
-
-        idStr = idStr.substring(0, index);
-
-        return Integer.parseInt(idStr);
+            while (receiving) //ovde dodaj neki boolean za svaki slucaj
+            {
+               // DatagramPacket packet = new DatagramPacket(data, data.length);
+              //  activity.PrikaziPing(receivingSocket.getPort(), 2);
+             //   activity.PrikaziPing(receivingSocket.getLocalPort(), 3);
+                receivingSocket.receive(receivePacket);
+                String info = (new String(receivePacket.getData())).trim();
+                if (info.contains("ping"))
+                {
+                    sendData(communication.activity.generateSensorList());
+                    activity.PrikaziPing(0,0);
+                }
+            }
+        } catch (SocketException e)
+        {
+            e.printStackTrace();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void closeSocket()
@@ -80,27 +120,43 @@ public class Communication
             socket.close();
             socket = null;
         }
+        receiving = false;
+        if(sendingThread != null && sendingThread.isAlive())
+        {
+            sendingThread.interrupt();
+            sendingThread = null;
+        }
+
+        if(receivingSocket != null)
+        {
+            receivingSocket.disconnect();
+            receivingSocket.close();
+            receivingSocket = null;
+        }
+
     }
 
 
     public void sendData(ArrayList<SensorData> datas)
     {
-        String info = "";
-        for(int i = 0; i < datas.size(); i++)
-            info += datas.get(i).toString() + "\n";
-
-        byte[] sendData;
-        sendData = info.getBytes();
-
-        DatagramPacket packet = new DatagramPacket(sendData,sendData.length);
-
         try
         {
-            socket = new DatagramSocket();
-            packet.setAddress(InetAddress.getByName(Constants.ip_address));
-            packet.setPort(Integer.parseInt(Constants.port));
-            socket.send(packet);
-            closeSocket();
+            String info;
+            for(int i = 0; i < datas.size(); i++)
+            {
+                info = datas.get(i).toString() + "\n";
+
+                byte[] sendData;
+                sendData = info.getBytes();
+
+                DatagramPacket packet = new DatagramPacket(sendData, sendData.length);
+                if (socket == null)
+                    socket = new DatagramSocket();
+                packet.setAddress(InetAddress.getByName(Constants.ip_address));
+                packet.setPort(Integer.parseInt(Constants.port));
+                socket.send(packet);
+            }
+           // closeSocket();
         } catch (IOException e)
         {
             e.printStackTrace();

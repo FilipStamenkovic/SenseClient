@@ -26,9 +26,6 @@ import android.widget.Toast;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener
@@ -36,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CheckBox acc, gyr, mag, gps;
     private EditText address, port;
     private SeekBar seekBar;
-    private boolean sendAcc, sendGyr, sendMag, sendGps, sendingData, subscribed;
+    private boolean sendAcc, sendGyr, sendMag, sendGps, sendingData, subscribed = false;
     private SensorData sensorAcc, sensorGyr, sensorMag, sensorGps;
     private Thread thread;
     private SensorManager sensorManager;
@@ -69,8 +66,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         port = (EditText) findViewById(R.id.edit_port);
         port.setText(Constants.port);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+                Constants.interval = ((double) seekBar.getProgress() + 1) / 2.0;
+            }
 
-        subscribed = sendingData = sendAcc = sendGps = sendGyr = sendMag = false;
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+        });
+
+      //  subscribed = sendingData = sendAcc = sendGps = sendGyr = sendMag = false;
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -81,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if(communication == null)
         {
-            communication = new Communication(this);
+            communication = Communication.getCommunication(this);
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -240,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         address.setEnabled(false);
         port.setEnabled(false);
 
-        seekBar.setEnabled(false);
+       // seekBar.setEnabled(false);
 
         final ArrayList<SensorData> dataToSend = generateSensorList();
         new Thread(new Runnable()
@@ -253,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }).start();
     }
 
-    public void subscribed(int id)
+    public void subscribed(long id)
     {
         sensorGps.setId(id);
         sensorAcc.setId(id);
@@ -319,6 +336,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sendingData = !sendingData;
     }
 
+    public void PrikaziPing(final int port,final int id)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if(port == 0)
+                    Toast.makeText(getApplicationContext(),"Pingovan sam", Toast.LENGTH_LONG).show();
+                else if(id == 1)
+                    Toast.makeText(getApplicationContext(),"Od paketa port je: " + port, Toast.LENGTH_LONG).show();
+                else if(id == 2)
+                    Toast.makeText(getApplicationContext(),"Od soketa port je: " + port, Toast.LENGTH_LONG).show();
+                else
+                    Toast.makeText(getApplicationContext(),"Od soketa localport je: " + port, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    public void PrikaziPing(final String text)
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                    Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void refreshData()
     {
         TextView textView;
@@ -362,7 +410,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         textView.setText(String.format("%.2f", sensorGps.getZ()));
     }
 
-    private ArrayList<SensorData> generateSensorList()
+    public ArrayList<SensorData> generateSensorList()
     {
         ArrayList<SensorData> datas = new ArrayList<>();
         //sendAcc, sendGyr, sendMag, sendGps,
