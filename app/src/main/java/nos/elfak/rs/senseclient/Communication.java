@@ -19,7 +19,6 @@ public class Communication
     private MainActivity activity;
    // private int receivePort;
     private Thread sendingThread;
-    private DatagramSocket receivingSocket;
     DatagramPacket receivePacket;
     private static Communication communication;
     private boolean receiving = false;
@@ -95,7 +94,7 @@ public class Communication
                // DatagramPacket packet = new DatagramPacket(data, data.length);
               //  activity.PrikaziPing(receivingSocket.getPort(), 2);
              //   activity.PrikaziPing(receivingSocket.getLocalPort(), 3);
-                receivingSocket.receive(receivePacket);
+                socket.receive(receivePacket);
                 String info = (new String(receivePacket.getData())).trim();
                 if (info.contains("ping"))
                 {
@@ -127,12 +126,12 @@ public class Communication
             sendingThread = null;
         }
 
-        if(receivingSocket != null)
+      /*  if(receivingSocket != null)
         {
             receivingSocket.disconnect();
             receivingSocket.close();
             receivingSocket = null;
-        }
+        }*/
 
     }
 

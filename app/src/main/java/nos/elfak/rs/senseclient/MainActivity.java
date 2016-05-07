@@ -224,6 +224,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             findViewById(R.id.acc_info).setVisibility(View.VISIBLE);
             sendAcc = true;
             sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), 2000000);
+        } else
+        {
+            sendAcc = false;
         }
         acc.setVisibility(View.GONE);
 
@@ -232,6 +235,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             findViewById(R.id.gyr_info).setVisibility(View.VISIBLE);
             sendGyr = true;
             sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), 2000000);
+        } else
+        {
+            sendGyr = false;
         }
         gyr.setVisibility(View.GONE);
 
@@ -240,6 +246,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             findViewById(R.id.mag_info).setVisibility(View.VISIBLE);
             sendMag = true;
             sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), 2000000);
+        } else
+        {
+            sendMag = false;
         }
         mag.setVisibility(View.GONE);
 
@@ -248,6 +257,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             findViewById(R.id.gps_info).setVisibility(View.VISIBLE);
             sendGps = true;
             registerGpsListener();
+        } else
+        {
+            sendGps = false;
         }
         gps.setVisibility(View.GONE);
 
