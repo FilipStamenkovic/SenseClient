@@ -326,8 +326,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         });
                         if(intervalCount == 2)
                         {
-                            communication.sendData(generateSensorList(), !subscribed);
-
+                            communication.sendData(generateSensorList(), !subscribed, null);
                             intervalCount = 0;
                         }
                         try

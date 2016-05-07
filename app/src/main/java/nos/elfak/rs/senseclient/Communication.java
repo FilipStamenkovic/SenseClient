@@ -56,9 +56,13 @@ public class Communication
             {
                 socket.receive(receivePacket);
                 info = (new String(receivePacket.getData())).trim();
-                if (info.contains("ping"))
+                String[] lines = info.split("\n");
+                String pingSens = null;
+                if(lines.length == 2)
+                    pingSens = lines[1];
+                if (lines[0].contains("ping"))
                 {
-                    sendData(communication.activity.generateSensorList(), false);
+                    sendData(communication.activity.generateSensorList(), false, pingSens);
                     activity.PrikaziPing(0, 0);
                 }
             }
@@ -100,7 +104,7 @@ public class Communication
     }
 
 
-    public void sendData(ArrayList<SensorData> datas, boolean subscribing)
+    public void sendData(ArrayList<SensorData> datas, boolean subscribing, String sensor)
     {
         try
         {
@@ -113,6 +117,8 @@ public class Communication
             {
                 for (int i = 0; i < datas.size(); i++)
                 {
+                    if(sensor != null && !datas.get(i).getSensor().contentEquals(sensor))
+                        continue;
                     info = datas.get(i).toString() + "\n";
                     sendData = info.getBytes();
 
