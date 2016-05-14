@@ -2,6 +2,7 @@ package nos.elfak.rs.senseclient;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -128,6 +129,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
+            if (unregister)
+                return;
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -481,5 +484,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+    public void seeResults(View view)
+    {
+        Intent i = new Intent(this, ResultsActivity.class);
+        startActivity(i);
+
     }
 }

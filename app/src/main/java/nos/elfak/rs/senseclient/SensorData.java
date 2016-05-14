@@ -8,11 +8,12 @@ import com.google.gson.GsonBuilder;
  */
 public class SensorData
 {
-    private double x;
-    private double y;
-    private double z;
-    private String sensor;
-    private long id;
+    protected double x;
+    protected double y;
+    protected double z;
+    protected String sensor;
+    protected long id;
+    protected transient String type = "upload";
 
     public SensorData(){}
 

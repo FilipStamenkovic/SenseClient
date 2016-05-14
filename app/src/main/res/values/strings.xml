@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">SenseClient</string>
+    <string name="app_name">Sense Client</string>
+    <string name="title_activity_results">Results</string>
+    <string name="action_settings">Settings</string>
 </resources>

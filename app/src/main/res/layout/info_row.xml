@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:background="@drawable/rectangle">
+
+    <TextView
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:id="@+id/sens_id"
+        android:text="Sensor id"
+        />
+
+    <TextView
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:id="@+id/sens_name"
+        android:text="Sensor name"
+        />
+    <TextView
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:id="@+id/sens_x"
+        android:text="X"
+        />
+    <TextView
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:id="@+id/sens_y"
+        android:text="Y"
+        />
+    <TextView
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:id="@+id/sens_z"
+        android:text="Z"
+        />
+
+    <TextView
+        android:layout_width="0px"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:id="@+id/sens_ts"
+        android:text="Time stamp"
+        />
+
+</TableRow>

@@ -2,6 +2,9 @@ package nos.elfak.rs.senseclient;
 
 import android.app.Activity;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,6 +12,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by filip on 30.4.16..
@@ -156,4 +160,42 @@ public class Communication
             closeSocket();
         }
     }
+
+    public ArrayList<ReceiveData> getData(Request request)
+    {
+        String info = request.toString();
+        DatagramPacket packet;
+        byte [] sendData = info.getBytes();
+        byte[] receiveData = new byte[102400];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        ArrayList<ReceiveData> datas = null;
+        try
+        {
+            if (socket == null)
+                socket = new DatagramSocket();
+
+            packet = new DatagramPacket(sendData,sendData.length);
+            packet.setAddress(InetAddress.getByName(Constants.ip_address));
+            packet.setPort(Integer.parseInt(Constants.port));
+            socket.send(packet);
+            socket.receive(receivePacket);
+            info = (new String(receivePacket.getData())).trim();
+            Gson gson = new Gson();
+            datas = gson.fromJson(info, new TypeToken<List<ReceiveData>>(){}.getType());
+        } catch (SocketException e)
+        {
+            e.printStackTrace();
+            closeSocket();
+        } catch (UnknownHostException e)
+        {
+            e.printStackTrace();
+            closeSocket();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+            closeSocket();
+        }
+        return datas;
+    }
+
 }
