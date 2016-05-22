@@ -253,19 +253,11 @@
         android:id="@+id/send_data"
         android:onClick="buttonClick"
         />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="See Results"
-        android:id="@+id/results"
-        android:onClick="seeResults"
-        />
-
+<!--
     <CheckBox
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Run in background"
         />
-
+-->
 </LinearLayout>

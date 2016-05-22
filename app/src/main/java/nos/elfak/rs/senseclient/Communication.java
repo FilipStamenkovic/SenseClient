@@ -165,45 +165,4 @@ public class Communication
             closeSocket();
         }
     }
-
-    public ArrayList<ReceiveData> getData(Request request)
-    {
-        String info = request.toString();
-        DatagramPacket packet;
-        byte [] sendData = info.getBytes();
-        byte[] receiveData = new byte[102400];
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        ArrayList<ReceiveData> datas = null;
-        try
-        {
-            if (socket == null)
-            {
-                socket = new DatagramSocket();
-                socket.setBroadcast(true);
-            }
-
-            packet = new DatagramPacket(sendData,sendData.length);
-            packet.setAddress(InetAddress.getByName(Constants.ip_address));
-            packet.setPort(Integer.parseInt(Constants.port));
-            socket.send(packet);
-            socket.receive(receivePacket);
-            info = (new String(receivePacket.getData())).trim();
-            Gson gson = new Gson();
-            datas = gson.fromJson(info, new TypeToken<List<ReceiveData>>(){}.getType());
-        } catch (SocketException e)
-        {
-            e.printStackTrace();
-            closeSocket();
-        } catch (UnknownHostException e)
-        {
-            e.printStackTrace();
-            closeSocket();
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-            closeSocket();
-        }
-        return datas;
-    }
-
 }

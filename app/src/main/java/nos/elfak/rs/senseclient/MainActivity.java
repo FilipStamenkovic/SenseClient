@@ -485,11 +485,4 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
     }
-
-    public void seeResults(View view)
-    {
-        Intent i = new Intent(this, ResultsActivity.class);
-        startActivity(i);
-
-    }
 }
