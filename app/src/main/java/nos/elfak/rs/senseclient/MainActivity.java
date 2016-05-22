@@ -3,6 +3,7 @@ package nos.elfak.rs.senseclient;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+    public static SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -103,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        preferences = getSharedPreferences(Constants.preferences, MODE_PRIVATE);
+        Constants.id = preferences.getLong("id", Constants.id);
     }
 
     @Override
@@ -347,33 +351,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sendingData = !sendingData;
     }
 
-    public void PrikaziPing(final int port,final int id)
+    public void PrikaziPing()
     {
         runOnUiThread(new Runnable()
         {
             @Override
             public void run()
             {
-                if(port == 0)
                     Toast.makeText(getApplicationContext(),"Pingovan sam", Toast.LENGTH_LONG).show();
-                else if(id == 1)
-                    Toast.makeText(getApplicationContext(),"Od paketa port je: " + port, Toast.LENGTH_LONG).show();
-                else if(id == 2)
-                    Toast.makeText(getApplicationContext(),"Od soketa port je: " + port, Toast.LENGTH_LONG).show();
-                else
-                    Toast.makeText(getApplicationContext(),"Od soketa localport je: " + port, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    public void PrikaziPing(final String text)
-    {
-        runOnUiThread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                    Toast.makeText(getApplicationContext(),text, Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -1,6 +1,7 @@
 package nos.elfak.rs.senseclient;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -54,12 +55,16 @@ public class Communication
                 socket.setBroadcast(true);
             }
             socket.receive(receivePacket);
-            String id = new String(receivePacket.getData());
+            String recvId = new String(receivePacket.getData());
+            Constants.id = Long.parseLong(recvId.trim());
             InetAddress address = receivePacket.getAddress();
+            SharedPreferences.Editor editor = MainActivity.preferences.edit();
+            editor.putLong("id", Constants.id);
+            editor.commit();
             Constants.ip_address = address.getHostAddress();
-            activity.subscribed(Long.parseLong(id.trim()));
+            activity.subscribed(Constants.id);
             receiving = true;
-            while (receiving) //ovde dodaj neki boolean za svaki slucaj
+            while (receiving)
             {
                 socket.receive(receivePacket);
                 info = (new String(receivePacket.getData())).trim();
@@ -70,10 +75,9 @@ public class Communication
                 if (lines[0].contains("ping"))
                 {
                     sendData(communication.activity.generateSensorList(), false, pingSens);
-                    activity.PrikaziPing(0, 0);
+                    activity.PrikaziPing();
                 }
             }
-          //  closeSocket();
         } catch (IOException e)
         {
             e.printStackTrace();
@@ -128,20 +132,23 @@ public class Communication
                 {
                     if(sensor != null && !datas.get(i).getSensor().contentEquals(sensor))
                         continue;
-                    info = datas.get(i).toString();// + "\n";
+                    info = datas.get(i).toString() + "\0";
                     sendData = info.getBytes();
 
                     packet = new DatagramPacket(sendData, sendData.length);
 
+
                     packet.setAddress(InetAddress.getByName(Constants.ip_address));
-                    packet.setPort(Integer.parseInt(Constants.port));
+                    packet.setPort(Constants.port);
                     socket.send(packet);
+                    int a = 3;
+                    a++;
                 }
             }else
             {
                 if(poslaoSubscribe)
                     return;
-                info = "subscribe\n";
+                info = "subscribe\n" + Constants.id + "\n";
                 for(int i = 0; i < datas.size(); i++)
                     info += datas.get(i).getSensor() + "\n";
 
@@ -150,7 +157,7 @@ public class Communication
 
                 packet = new DatagramPacket(sendData,sendData.length);
                 packet.setAddress(InetAddress.getByName(Constants.ip_address));
-                packet.setPort(Integer.parseInt(Constants.port));
+                packet.setPort(Constants.port);
                 socket.send(packet);
                 poslaoSubscribe = true;
             }
