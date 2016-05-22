@@ -13,7 +13,7 @@ public class SensorData
     protected double z;
     protected String sensor;
     protected long id;
-    protected transient String type = "upload";
+    protected String type = "upload";
 
     public SensorData(){}
 

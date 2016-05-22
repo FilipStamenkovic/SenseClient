@@ -32,7 +32,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements SensorEventListener
 {
     private CheckBox acc, gyr, mag, gps;
-    private EditText address, port;
+   // private EditText address, port;
     private SeekBar seekBar;
     private boolean sendAcc, sendGyr, sendMag, sendGps, sendingData, subscribed = false;
     private SensorData sensorAcc, sensorGyr, sensorMag, sensorGps;
@@ -62,11 +62,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         button = (Button) findViewById(R.id.send_data);
 
         seekBar = (SeekBar) findViewById(R.id.seekbar);
-        address = (EditText) findViewById(R.id.edit_address);
-        address.setText(Constants.ip_address);
+       // address = (EditText) findViewById(R.id.edit_address);
+      //  address.setText(Constants.ip_address);
 
-        port = (EditText) findViewById(R.id.edit_port);
-        port.setText(Constants.port);
+      //  port = (EditText) findViewById(R.id.edit_port);
+      //  port.setText(Constants.port);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
             @Override
@@ -178,8 +178,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         PickUpLocation(true);
         sendAcc = sendGps = sendGyr = sendMag = false;
 
-        address.setEnabled(true);
-        port.setEnabled(true);
+//        address.setEnabled(true);
+//        port.setEnabled(true);
         seekBar.setEnabled(true);
         subscribed = false;
         communication.closeSocket();
@@ -266,11 +266,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         gps.setVisibility(View.GONE);
 
-        Constants.ip_address = address.getText().toString();
-        Constants.port = port.getText().toString();
+//        Constants.ip_address = address.getText().toString();
+  //      Constants.port = port.getText().toString();
 
-        address.setEnabled(false);
-        port.setEnabled(false);
+//        address.setEnabled(false);
+    //    port.setEnabled(false);
 
        // seekBar.setEnabled(false);
         new Thread(new Runnable()

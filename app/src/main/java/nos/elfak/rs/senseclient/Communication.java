@@ -51,9 +51,12 @@ public class Communication
             if(socket == null)
             {
                 socket = new DatagramSocket();
+                socket.setBroadcast(true);
             }
             socket.receive(receivePacket);
             String id = new String(receivePacket.getData());
+            InetAddress address = receivePacket.getAddress();
+            Constants.ip_address = address.getHostAddress();
             activity.subscribed(Long.parseLong(id.trim()));
             receiving = true;
             while (receiving) //ovde dodaj neki boolean za svaki slucaj
@@ -116,14 +119,16 @@ public class Communication
             DatagramPacket packet;
             byte [] sendData;
             if (socket == null)
+            {
                 socket = new DatagramSocket();
-            if(!subscribing)
+                socket.setBroadcast(true);
+            }if(!subscribing)
             {
                 for (int i = 0; i < datas.size(); i++)
                 {
                     if(sensor != null && !datas.get(i).getSensor().contentEquals(sensor))
                         continue;
-                    info = datas.get(i).toString() + "\n";
+                    info = datas.get(i).toString();// + "\n";
                     sendData = info.getBytes();
 
                     packet = new DatagramPacket(sendData, sendData.length);
@@ -172,7 +177,10 @@ public class Communication
         try
         {
             if (socket == null)
+            {
                 socket = new DatagramSocket();
+                socket.setBroadcast(true);
+            }
 
             packet = new DatagramPacket(sendData,sendData.length);
             packet.setAddress(InetAddress.getByName(Constants.ip_address));
