@@ -137,12 +137,9 @@ public class Communication
 
                     packet = new DatagramPacket(sendData, sendData.length);
 
-
                     packet.setAddress(InetAddress.getByName(Constants.ip_address));
                     packet.setPort(Constants.port);
                     socket.send(packet);
-                    int a = 3;
-                    a++;
                 }
             }else
             {
